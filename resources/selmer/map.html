@@ -9,19 +9,29 @@
     </style>
   </head>
   <body>
-    <h3>My Google Maps Demo</h3>
+    <h3>Green Spikes</h3>
     <div id="map"></div>
     <script>
-      function initMap() {
-        var uluru = {lat: {{lat}}, lng: {{lon}} };
-        var map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 4,
-          center: uluru
-        });
-        var marker = new google.maps.Marker({
-          position: uluru,
-          map: map
-        });
+     var spikes = [
+         {%for s in spikes %}
+         { lat: {{s.lat}},
+           lng: {{s.lng}}
+         },
+         {% endfor %}
+     ];
+
+     function initMap() {
+         var map = new google.maps.Map(document.getElementById('map'), {
+             zoom: 13,
+             center: spikes[0]
+         });
+         for (var i = 0;i < spikes.length; i++) {
+             s = spikes[i];
+             var marker = new google.maps.Marker({
+                 position: {lat: s.lat, lng: s.lng},
+                 map: map
+             });
+         }
       }
     </script>
     <script async defer

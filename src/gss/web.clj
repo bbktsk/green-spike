@@ -20,12 +20,10 @@
 (comment deftemplate map "templates/map.html"
          [])
 
-
 (defn show-map
   []
-  (let [spikes (db/get-spikes)
-        s (first spikes)]
-    (selmer/render-file "map.html" s)))
+  (let [spikes (db/get-spikes)]
+    (selmer/render-file "map.html" {:spikes spikes})))
 
 (defn splash []
   {:status 200
@@ -42,6 +40,7 @@
 
 (defn -main [& [port]]
   (db/connect (env "MONGODB_URI"))
+  (db/create-testing)
   (selmer/set-resource-path! (clojure.java.io/resource "selmer"))
   (let [port (Integer. (or port (env :port) 5000))]
     (jetty/run-jetty (site #'app) {:port port :join? false})))
