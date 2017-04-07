@@ -31,7 +31,8 @@
      stateNames = {
          red: "žízní",
          yellow: "napil by se",
-         green: "v pohodě"
+         green: "v pohodě",
+         white: "neznámý"
      }
      function makeinfo(s) {
          return "<b>" + s.name + "</b><br/>" +
@@ -50,6 +51,7 @@
          }
      }
      function getIcon(x) {
+         if (x == "") { x = "white" };
          return "/static/t2-" + x + ".png";
      }
      function initMap() {
