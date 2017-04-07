@@ -39,8 +39,8 @@
        (route/not-found (slurp (io/resource "404.html")))))
 
 (defn -main [& [port]]
-  (println "XXX:" (env "MONGODB_URI"))
-  (db/connect (env "MONGODB_URI"))
+  (println "XXX:" (env :mongodb-uri))
+  (db/connect (env :mongodb-uri))
   (db/create-testing)
   (selmer/set-resource-path! (clojure.java.io/resource "selmer"))
   (let [port (Integer. (or port (env :port) 5000))]
