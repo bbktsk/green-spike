@@ -25,7 +25,8 @@
   :plugins [[environ/environ.lein "0.3.1"]]
   :hooks [environ.leiningen.hooks]
   :uberjar-name "green-spike-server-standalone.jar"
-  :profiles {:production {:env {:prod true
-                                :m2x-key "5fa8ca77601afee8c23ea6f52fd0cb33"}}
-             :dev {:env {:prod false
-                         :m2x-key "5fa8ca77601afee8c23ea6f52fd0cb33"}}})
+
+  :env {:prod "yup"
+        :m2x-key "5fa8ca77601afee8c23ea6f52fd0cb33"} 
+  :profiles {:dev {:env {:prod "nope"}}
+             :production {:env {:prod "super"}}})
