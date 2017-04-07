@@ -7,6 +7,7 @@
             [ring.adapter.jetty :as jetty]
             [environ.core :refer [env]]
 
+            [gss.db :as db] 
             [gss.m2x :as m2x]))
 
 
@@ -29,6 +30,7 @@
        (route/not-found (slurp (io/resource "404.html")))))
 
 (defn -main [& [port]]
+  (db/connect (env "MONGODB_URI"))
   (let [port (Integer. (or port (env :port) 5000))]
     (jetty/run-jetty (site #'app) {:port port :join? false})))
 
