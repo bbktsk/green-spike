@@ -10,10 +10,22 @@ int keyIndex = 0;            // your network key Index number (needed only for W
 
 int status = WL_IDLE_STATUS;
 
+#define LED RED_LED
+
 char deviceId[] = "0904d16113289ea7b0f7d0dcbf8167ed"; // Feed you want to post to
 char m2xKey[] = "5fa8ca77601afee8c23ea6f52fd0cb33"; // Your M2X access key
-char streamName[] = "clickity"; // Stream you want to post to
+char streamName[] = "wetness"; // Stream you want to post to
+
 bool pushed = false;
+unsigned long lastReport = 0;
+unsigned long lastPrint = 0;
+
+const unsigned long printDelay = 500;
+const unsigned long minReportDelay = 500;
+const unsigned long maxReportDelay = 60000;
+
+WiFiClient client;
+M2XStreamClient m2xClient(&client, m2xKey);
 
 void printWifiStatus() {
   // print the SSID of the network you're attached to:
@@ -28,8 +40,10 @@ void printWifiStatus() {
 
 void setup() {
 
+    lastReport = 0;
     Serial.begin(9600);
     pinMode(PUSH1, INPUT_PULLUP);
+    pinMode(LED, OUTPUT);     
     
     // attempt to connect to Wifi network:x
     Serial.print("Attempting to connect to Network named: ");
@@ -59,14 +73,20 @@ void setup() {
 
 void loop() {
   int button = !digitalRead(PUSH1);
-  Serial.print("ADC: ");
-  int x = analogRead(A5);
-  Serial.println(x);
-  delay(500);
-  if (button && !pushed) {
+  int w = analogRead(A5);
+  unsigned long now = millis();
+  
+  if (lastPrint + printDelay < now) {
     Serial.print("ADC: ");
-    int x = analogRead(A5);
-    Serial.println(x);
+    Serial.println(w);
+    lastPrint = now;
   }
-  pushed = button;
+  
+  if ((lastReport + maxReportDelay < now) || (button && (lastReport + minReportDelay < now))) {
+    Serial.print("Reporting: ");
+    int response = m2xClient.updateStreamValue(deviceId, streamName, w);
+    Serial.println(response);    
+    lastReport = now;
+  }
+  digitalWrite(LED, (now % 1000) < 621);
 }
