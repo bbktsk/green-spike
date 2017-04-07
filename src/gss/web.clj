@@ -3,11 +3,12 @@
             [compojure.handler :refer [site]]
             [compojure.route :as route]
             [clojure.java.io :as io]
+            [environ.core :refer [env]]
             [net.cgrand.enlive-html :as enlive :refer [deftemplate]]
             [ring.adapter.jetty :as jetty]
-            [environ.core :refer [env]]
+            [selmer.parser :as selmer]
 
-            [gss.db :as db] 
+            [gss.db :as db]
             [gss.m2x :as m2x]))
 
 
@@ -16,6 +17,16 @@
   [:title] (enlive/content (str "Spike " (env :prod)))
   [:#wetness] (enlive/content (str (m2x/device-wetness id))))
 
+(comment deftemplate map "templates/map.html"
+         [])
+
+
+(defn show-map
+  []
+  (let [spikes (db/get-spikes)
+        s (first spikes)]
+    (selmer/render-file "map.html" s)))
+
 (defn splash []
   {:status 200
    :headers {"Content-Type" "text/plain"}
@@ -23,14 +34,15 @@
 
 (defroutes app
   (GET "/" []
-       (splash))
+       (show-map))
   (GET "/spike/:id" [id] (spike-detail id))
 
   (ANY "*" []
        (route/not-found (slurp (io/resource "404.html")))))
 
 (defn -main [& [port]]
-  ;;(db/connect (env "MONGODB_URI"))
+  (db/connect (env "MONGODB_URI"))
+  (selmer/set-resource-path! (clojure.java.io/resource "selmer"))
   (let [port (Integer. (or port (env :port) 5000))]
     (jetty/run-jetty (site #'app) {:port port :join? false})))
 
