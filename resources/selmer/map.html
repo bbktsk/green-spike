@@ -14,25 +14,70 @@
     <script>
      var spikes = [
          {%for s in spikes %}
-         { lat: {{s.lat}},
-           lng: {{s.lng}}
+         { id: "{{s._id}}",
+           lat: {{s.lat}},
+           lng: {{s.lng}},
+           state: "{{s.state}}",
+           name: "{{s.name}}",
+           wallet: "{{s.balance}}",
+           bounty: {{s.bounty}},
+           balance: {{s.balance}}
          },
          {% endfor %}
      ];
 
+     infos = [];
+
+     stateNames = {
+         red: "žízní",
+         yellow: "napil by se",
+         green: "v pohodě"
+     }
+     function makeinfo(s) {
+         return "<b>" + s.name + "</b><br/>" +
+                "Stav: "  + stateNames[s.state] + "<br/>" +
+                "Odměna: " + s.bounty + "<br/>" +
+                "Účet: " + s.balance + "<br/>" +
+                "<a href=\"spike/" + s.id + "\">Podrobnosti</a>";
+     }
+
+     function closeInfos(){
+         if(infos.length > 0){
+             /* detach the info-window from the marker ... undocumented in the API docs */
+             infos[0].set("marker", null);
+             infos[0].close();
+             infos.length = 0;
+         }
+     }
+     function getIcon(x) {
+         return "/static/t2-" + x + ".png";
+     }
      function initMap() {
          var map = new google.maps.Map(document.getElementById('map'), {
              zoom: 13,
              center: spikes[0]
          });
+
          for (var i = 0;i < spikes.length; i++) {
              s = spikes[i];
              var marker = new google.maps.Marker({
                  position: {lat: s.lat, lng: s.lng},
+                 icon: getIcon(s.state),
                  map: map
              });
+             var infowindow = new google.maps.InfoWindow();
+
+             google.maps.event.addListener(marker,'click', (function(marker,content,infowindow) {
+                 return function() {
+                     closeInfos();
+                     infowindow.setContent(content);
+                     infowindow.open(map,marker);
+                     infos[0]=infowindow;
+                 };
+             })(marker,makeinfo(s),infowindow));
+
          }
-      }
+     }
     </script>
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAw6HseseA-TBa0mPz3vb96o0rWRMHS4SQ&callback=initMap">

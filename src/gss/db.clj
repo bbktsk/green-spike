@@ -6,8 +6,8 @@
 
             [gss.m2x :as m2x]))
 
-(def db (atom nil))
-(def conn (atom nil))
+(defonce db (atom nil))
+(defonce conn (atom nil))
 
 (def spikes "spikes")
 
@@ -20,13 +20,14 @@
 
 
 (defn create-spike
-  [id name lat lng dev eth]
+  [id name lat lng dev eth state]
   (mc/insert @db spikes {:_id id
                          :name name
                          :lat lat
                          :lng lng
                          :dev dev
-                         :eth eth}))
+                         :eth eth
+                         :state state}))
 
 (defn get-spike
   [id]
@@ -36,7 +37,9 @@
 
 (defn get-spikes
   []
-  (mc/find-maps @db spikes))
+  (->> spikes
+       (mc/find-maps @db)
+       (map #(merge {:balance 0 :bounty 0 :wallet ""} %))))
 
 (defn update-spike-wetness
   [spike]
@@ -50,17 +53,20 @@
                  "Bush next to Holiday Inn"
                  49.184635  16.580268
                  "0904d16113289ea7b0f7d0dcbf8167ed"
-                 "02652bfde2ff7f3264138cdb2117021c202ebbe2")
+                 "02652bfde2ff7f3264138cdb2117021c202ebbe2"
+                 "red")
         (catch Object _ nil))
   (try+ (create-spike "spilberk"
                  "Spilberk"
                  49.193982 16.601023
                  "0904d16113289ea7b0f7d0dcbf8167ed"
-                 "50e339de78eb57ed8724107e044eb8d0a54b48a8")
+                 "50e339de78eb57ed8724107e044eb8d0a54b48a8"
+                 "yellow")
         (catch Object _ nil))
   (try+ (create-spike "obilnitrh"
                  "Obilni trh"
                  49.199569, 16.597069
                  "0904d16113289ea7b0f7d0dcbf8167ed"
-                 "9f97d33281649c7b38b73ead0c12ccef8f70a2b6")
+                 "9f97d33281649c7b38b73ead0c12ccef8f70a2b6"
+                 "green")
         (catch Object _ nil)))

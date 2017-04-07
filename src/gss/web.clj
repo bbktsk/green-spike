@@ -20,6 +20,13 @@
 (comment deftemplate map "templates/map.html"
          [])
 
+
+(defn show-spike-detail
+  [id]
+  (println "spike: " id)
+  (let [spike (db/get-spike id)]
+    (spike-detail spike)))
+
 (defn show-map
   []
   (let [spikes (db/get-spikes)]
@@ -33,13 +40,15 @@
 (defroutes app
   (GET "/" []
        (show-map))
-  (GET "/spike/:id" [id] (spike-detail id))
+
+  (GET "/spike/:id" [id] (show-spike-detail id))
+
+  (route/resources "/")
 
   (ANY "*" []
        (route/not-found (slurp (io/resource "404.html")))))
 
 (defn -main [& [port]]
-  (println "XXX:" (env :mongodb-uri))
   (db/connect (env :mongodb-uri))
   (db/create-testing)
   (selmer/set-resource-path! (clojure.java.io/resource "selmer"))
