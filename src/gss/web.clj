@@ -13,13 +13,12 @@
 
 
 (deftemplate spike-detail "templates/spike-detail.html"
-  [id]
-  [:title] (enlive/content (str "Spike " (env :prod)))
-  [:#wetness] (enlive/content (str (m2x/device-wetness id))))
+  [s]
+  [:title] (enlive/content (str "Spike " (:name s)))
+  [:#wetness] (enlive/content (:state s)))
 
 (comment deftemplate map "templates/map.html"
          [])
-
 
 (defn show-spike-detail
   [id]
