@@ -13,7 +13,7 @@
 
 (deftemplate spike-detail "templates/spike-detail.html"
   [id]
-  [:title] (enlive/content (str "Spike " id))
+  [:title] (enlive/content (str "Spike " (env :prod)))
   [:#wetness] (enlive/content (str (m2x/device-wetness id))))
 
 (defn splash []
@@ -30,7 +30,7 @@
        (route/not-found (slurp (io/resource "404.html")))))
 
 (defn -main [& [port]]
-  (db/connect (env "MONGODB_URI"))
+  ;;(db/connect (env "MONGODB_URI"))
   (let [port (Integer. (or port (env :port) 5000))]
     (jetty/run-jetty (site #'app) {:port port :join? false})))
 
