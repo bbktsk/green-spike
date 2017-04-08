@@ -25,10 +25,14 @@
                    "green" "success"
                    "white" "info"})
 
+(defn rounder
+  [s]
+  (reduce #(assoc %1 %2 (format "%.4f" (s %2))) s [:bounty-usd :balance-usd :balance :bounty]))
+
 (defn show-spike-detail
   [id thankyou]
   (println "spike: " id)
-  (let [spike* (db/get-spike id)
+  (let [spike* (-> (db/get-spike id) rounder)
         state (get spike* :state "white")
         spike (assoc spike*
                      :state-desc (state->desc state)
@@ -38,7 +42,9 @@
 
 (defn show-map
   []
-  (let [spikes (db/get-spikes)]
+  (let [spikes (->>
+                (db/get-spikes)
+                (map rounder))]
     (selmer/render-file "map.html" {:spikes spikes})))
 
 (defn splash []

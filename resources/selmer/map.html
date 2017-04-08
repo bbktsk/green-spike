@@ -27,7 +27,9 @@
            name: "{{s.name}}",
            wallet: "{{s.balance}}",
            bounty: {{s.bounty}},
-           balance: {{s.balance}}
+           balance: {{s.balance}},
+           balance_usd: {{s.balance-usd}},
+           bounty_usd: {{s.bounty-usd}}
          },
          {% endfor %}
      ];
@@ -43,8 +45,8 @@
      function makeinfo(s) {
          return "<b>" + s.name + "</b><br/>" +
                 "Status: "  + stateNames[s.state] + "<br/>" +
-                "Reward: " + s.bounty + "<br/>" +
-                "Wallet: " + s.balance + "<br/>" +
+                "Reward: ETH " + s.bounty + " (USD " + s.bounty_usd + ")<br/>" +
+                "Wallet: ETH " + s.balance + " (USD " + s.balance_usd + ")<br/>" +
                 "<a href=\"spike/" + s.id + "\">Details...</a>";
      }
 
