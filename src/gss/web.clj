@@ -6,25 +6,35 @@
             [environ.core :refer [env]]
             [net.cgrand.enlive-html :as enlive :refer [deftemplate]]
             [ring.adapter.jetty :as jetty]
+            [ring.middleware.defaults :refer :all]
+            [ring.middleware.json :refer [wrap-json-response wrap-json-body]]
             [selmer.parser :as selmer]
 
             [gss.db :as db]
             [gss.m2x :as m2x]))
 
+(def state->desc
+  {
+   "red" "thirsty",
+   "yellow" "could use a sip",
+   "green" "just fine",
+   "white" "unknown"})
 
-(deftemplate spike-detail "templates/spike-detail.html"
-  [s]
-  [:title] (enlive/content (str "Spike " (:name s)))
-  [:#wetness] (enlive/content (:state s)))
-
-(comment deftemplate map "templates/map.html"
-         [])
+(def state->style {"red" "danger"
+                   "yellow" "warning"
+                   "green" "success"
+                   "white" "info"})
 
 (defn show-spike-detail
-  [id]
+  [id thankyou]
   (println "spike: " id)
-  (let [spike (db/get-spike id)]
-    (spike-detail spike)))
+  (let [spike* (db/get-spike id)
+        state (get spike* :state "white")
+        spike (assoc spike*
+                     :state-desc (state->desc state)
+                     :state-style (state->style state)
+                     :thankyou thankyou)]
+    (selmer/render-file "spike-detail.html" spike)))
 
 (defn show-map
   []
@@ -36,11 +46,20 @@
    :headers {"Content-Type" "text/plain"}
    :body "Hello from Heroku"})
 
+(defn doit
+  [id params]
+  (let [address (get-in params [:form-params "addr"])]
+    (db/update-spike-request id address)
+    (show-spike-detail id true))
+  )
+
 (defroutes app
   (GET "/" []
        (show-map))
 
-  (GET "/spike/:id" [id] (show-spike-detail id))
+  (GET "/spike/:id" [id] (show-spike-detail id false))
+  (POST "/spike/:id" [id :as params] (doit id params))
+  (GET  "/spikes" [] (db/get-spikes))
 
   (route/resources "/")
 
@@ -52,7 +71,10 @@
   (db/create-testing)
   (selmer/set-resource-path! (clojure.java.io/resource "selmer"))
   (let [port (Integer. (or port (env :port) 5000))]
-    (jetty/run-jetty (site #'app) {:port port :join? false})))
+    (jetty/run-jetty (-> #'app
+                         wrap-json-response
+                         wrap-json-body
+                         (wrap-defaults (assoc site-defaults :security {:anti-forgery false}))) {:port port :join? false})))
 
 ;; For interactive development:
 ;; (.stop server)

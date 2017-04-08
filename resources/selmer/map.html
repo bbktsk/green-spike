@@ -2,15 +2,21 @@
 <html>
   <head>
     <style>
-       #map {
-        height: 400px;
-        width: 100%;
+     html, body, #map {
+        height: 100%;
+         width: 100%;
+         padding: 0px;
+         spacing: 0px;
+         margin: 0px;
        }
     </style>
   </head>
   <body>
-    <h3>Green Spikes</h3>
-    <div id="map"></div>
+      <div id="map"></div>
+      <script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
     <script>
      var spikes = [
          {%for s in spikes %}
@@ -29,20 +35,20 @@
      infos = [];
 
      stateNames = {
-         red: "žízní",
-         yellow: "napil by se",
-         green: "v pohodě",
-         white: "neznámý"
+         red: "thirsty",
+         yellow: "could use a sip",
+         green: "just fine",
+         white: "unknown"
      }
      function makeinfo(s) {
          return "<b>" + s.name + "</b><br/>" +
-                "Stav: "  + stateNames[s.state] + "<br/>" +
-                "Odměna: " + s.bounty + "<br/>" +
-                "Účet: " + s.balance + "<br/>" +
-                "<a href=\"spike/" + s.id + "\">Podrobnosti</a>";
+                "Status: "  + stateNames[s.state] + "<br/>" +
+                "Reward: " + s.bounty + "<br/>" +
+                "Wallet: " + s.balance + "<br/>" +
+                "<a href=\"spike/" + s.id + "\">Details...</a>";
      }
 
-     function closeInfos(){
+     function closeInfos() {
          if(infos.length > 0){
              /* detach the info-window from the marker ... undocumented in the API docs */
              infos[0].set("marker", null);
@@ -50,23 +56,52 @@
              infos.length = 0;
          }
      }
+
+     function updateMarkers(data) {
+         var ms = {};
+         data=eval(data);
+         for(var i = 0; i < data.length; i++) {
+             var item = data[i];
+             ms[item._id] = item;
+         }
+         for (var i = 0; i < spikes.length; i++) {
+             s = spikes[i];
+             n = ms[s.id];
+             s.marker.setIcon(getIcon(n.state));
+         }
+     }
+
+     function requestUpdate() {
+         $.get( "/spikes", function(data) {
+             updateMarkers(data);
+         })
+          .fail(function(err) {
+              console.log("err " + err)
+          })
+          .always(function() {
+              setTimeout(requestUpdate, 1000);
+          });
+     }
+
      function getIcon(x) {
          if (x == "") { x = "white" };
          return "/static/t2-" + x + ".png";
      }
+
      function initMap() {
          var map = new google.maps.Map(document.getElementById('map'), {
-             zoom: 13,
+             zoom: 14,
              center: spikes[0]
          });
 
          for (var i = 0;i < spikes.length; i++) {
              s = spikes[i];
-             var marker = new google.maps.Marker({
+             marker = new google.maps.Marker({
                  position: {lat: s.lat, lng: s.lng},
                  icon: getIcon(s.state),
                  map: map
              });
+             s.marker = marker;
              var infowindow = new google.maps.InfoWindow();
 
              google.maps.event.addListener(marker,'click', (function(marker,content,infowindow) {
@@ -76,9 +111,10 @@
                      infowindow.open(map,marker);
                      infos[0]=infowindow;
                  };
-             })(marker,makeinfo(s),infowindow));
-
+             }
+             )(marker,makeinfo(s),infowindow));
          }
+         requestUpdate();
      }
     </script>
     <script async defer

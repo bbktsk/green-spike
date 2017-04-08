@@ -47,6 +47,11 @@
         wetness (m2x/device-wetness dev)]
     (mc/update-by-id @db spikes _id {$set {:wetness wetness}})))
 
+(defn update-spike-request
+  [spike address]
+  (let [{:keys [_id]} (get-spike spike)]
+    (mc/update-by-id @db spikes _id {$set {:requestor address}})))
+
 (defn create-testing
   []
   (try+ (create-spike "holin"
